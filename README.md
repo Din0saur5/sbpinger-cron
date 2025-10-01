@@ -37,11 +37,12 @@ npm install
 
 ### 3. **Configure Environment Variables**
 
-Create a `.env` file in the project root and add your Supabase credentials:
+Create a `.env` file in the project root and add an array of your Supabase credentials:
 
 ```env
-SUPABASE_URL=your-supabase-url
-SUPABASE_KEY=your-supabase-api-key
+# One line JSON (best for .env files) [include the quotation marks]
+SUPABASES_JSON=[{"url":"https://proj1.supabase.co","key":"service-or-anon-key-1"},{"url":"https://proj2.supabase.co","key":"service-or-anon-key-2"}]
+
 ```
 
 On Render, set these environment variables in the **Environment** settings of your cron job service.
