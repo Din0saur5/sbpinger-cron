@@ -1,36 +1,74 @@
 const fetch = require("node-fetch");
 require("dotenv").config();
 
-// Load environment variables
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_KEY;
+function loadProjectsFromEnv() {
+  const raw = process.env.SUPABASES_JSON;
+  if (!raw) throw new Error("Missing SUPABASES_JSON env var.");
 
-const headers = {
+  let arr;
+  try {
+    arr = JSON.parse(raw);
+  } catch (e) {
+    throw new Error("SUPABASES_JSON is not valid JSON: " + e.message);
+  }
+
+  if (!Array.isArray(arr) || arr.length === 0) {
+    throw new Error("SUPABASES_JSON must be a non-empty JSON array.");
+  }
+
+  // Basic schema check + cleanup
+  const projects = arr
+    .map((x, i) => ({
+      id: `env-${i + 1}`,
+      url: typeof x.url === "string" ? x.url.trim().replace(/\/+$/, "") : "",
+      key: typeof x.key === "string" ? x.key : "",
+    }))
+    .filter(p => p.url && p.key);
+
+  if (projects.length === 0) {
+    throw new Error("No valid {url,key} entries found in SUPABASES_JSON.");
+  }
+
+  return projects;
+}
+
+async function pingDatabase(db) {
+  const headers = {
     "Content-Type": "application/json",
-    apikey: SUPABASE_KEY,
-    Authorization: `Bearer ${SUPABASE_KEY}`,
-};
+    apikey: db.key,
+    Authorization: `Bearer ${db.key}`,
+  };
 
-// Function to send a POST request to the "pings" table
-const sendPostRequest = async () => {
-    const payload = { pinged: true };
+  const payload = { pinged: true, at: new Date().toISOString() };
 
-    try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/pings`, {
-            method: "POST",
-            headers: headers,
-            body: JSON.stringify(payload),
-        });
+  try {
+    const res = await fetch(`${db.url}/rest/v1/pings`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload),
+    });
 
-        if (response.ok) {
-            console.log("POST request successful");
-        } else {
-            console.error("POST request failed:", await response.text());
-        }
-    } catch (error) {
-        console.error("Error during POST request:", error);
+    if (res.ok) {
+      console.log(`✅ ${db.id} (${db.url}) -> OK`);
+    } else {
+      console.error(`❌ ${db.id} (${db.url}) ->`, await res.text());
     }
-};
+  } catch (err) {
+    console.error(`🚨 ${db.id} (${db.url}) error ->`, err.message);
+  }
+}
 
-// Execute the POST request
-sendPostRequest();
+(async () => {
+  const projects = loadProjectsFromEnv();
+  console.log(`Pinging ${projects.length} Supabase project(s)...`);
+
+  // Sequential (easier on rate limits)
+  for (const db of projects) {
+    await pingDatabase(db);
+  }
+
+  // If you prefer parallel:
+  // await Promise.all(projects.map(pingDatabase));
+
+  console.log("Done.");
+})();
