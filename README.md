@@ -38,9 +38,10 @@ npm install
 ### 3. **Configure Environment Variables**
 
 Create a `.env` file in the project root and add an array of your Supabase credentials:
+- !IMPORTANT - Include the quotation marks and make sure you have no extra spaces, newlines, or anythign else that cannot be parsed with the json library
 
 ```env
-# One line JSON (best for .env files) [include the quotation marks]
+# ONE LINE JSON
 SUPABASES_JSON=[{"url":"https://proj1.supabase.co","key":"service-or-anon-key-1"},{"url":"https://proj2.supabase.co","key":"service-or-anon-key-2"}]
 
 ```
