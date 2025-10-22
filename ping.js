@@ -39,7 +39,7 @@ async function pingDatabase(db) {
     Authorization: `Bearer ${db.key}`,
   };
 
-  const payload = { pinged: true, at: new Date().toISOString() };
+  const payload = { pinged: true, created_at: new Date().toISOString() };
 
   try {
     const res = await fetch(`${db.url}/rest/v1/pings`, {
