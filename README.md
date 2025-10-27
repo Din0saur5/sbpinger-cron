@@ -16,6 +16,19 @@ This project automates periodic updates to a Supabase table (`pings`) using a cr
    - **timestamp** (Timestamp, Default: `NOW()`)
    - **pinged** (Boolean, Default: `true`)
 
+You can drop this into the sql editor directly:
+   ```sql
+-- Create the table
+create table public.pings (
+  id bigserial primary key,
+  created_at timestamp with time zone default now(),
+  pinged boolean default true
+);
+
+-- Disable Row Level Security (RLS) on that table
+alter table public.pings disable row level security;
+```
+
 ## Setting Up the Cron Job on Render
 
 ### 1. **Deploy the Repository**
