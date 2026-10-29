@@ -36,8 +36,13 @@ async function pingDatabase(db) {
   const headers = {
     "Content-Type": "application/json",
     apikey: db.key,
-    Authorization: `Bearer ${db.key}`,
   };
+
+  // Publishable/secret keys are not JWTs. Only legacy JWT keys belong in
+  // Authorization; sending an sb_* key there causes an Invalid JWT error.
+  if (!db.key.startsWith("sb_publishable_") && !db.key.startsWith("sb_secret_")) {
+    headers.Authorization = `Bearer ${db.key}`;
+  }
 
   const payload = { pinged: true, created_at: new Date().toISOString() };
 

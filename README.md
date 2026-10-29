@@ -61,6 +61,32 @@ SUPABASES_JSON=[{"url":"https://proj1.supabase.co","key":"service-or-anon-key-1"
 
 On Render, set these environment variables in the **Environment** settings of your cron job service.
 
+Publishable (`sb_publishable_...`) and secret (`sb_secret_...`) keys are sent
+only in the `apikey` header. Legacy JWT `anon` and `service_role` keys keep
+their existing `Authorization: Bearer` header as well.
+
+For a publishable key, keep RLS enabled and allow only inserts of successful
+pings. After creating `public.pings` as above, use:
+
+```sql
+alter table public.pings enable row level security;
+revoke all on table public.pings from anon, authenticated;
+revoke all on sequence public.pings_id_seq from anon, authenticated;
+grant insert (created_at, pinged) on table public.pings to anon;
+grant usage on sequence public.pings_id_seq to anon;
+
+create policy pings_anon_insert
+on public.pings
+for insert
+to anon
+with check (pinged is true);
+```
+
+This permits anonymous heartbeat inserts without permitting reads, updates,
+or deletes. It does not grant access to other tables. Leave the default
+minimal response for inserts; returning inserted rows would require SELECT
+permission.
+
 ### 4. **Set Up the Cron Job on Render**
 
 1. Go to your [Render Dashboard](https://dashboard.render.com/).
