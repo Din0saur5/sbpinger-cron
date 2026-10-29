@@ -40,18 +40,11 @@ git clone https://github.com/yourusername/supabase-cron-job.git
 cd supabase-cron-job
 ```
 
-### 2. **Install Dependencies**
-
-Once inside the project folder, install dependencies:
-
-```bash
-npm install
-```
-
-### 3. **Configure Environment Variables**
+### 2. **Configure Environment Variables**
 
 Create a `.env` file in the project root and add an array of your Supabase credentials:
-- !IMPORTANT - Include the quotation marks and make sure you have no extra spaces, newlines, or anythign else that cannot be parsed with the json library
+- Use valid JSON with double-quoted property names and strings. Whitespace
+  between JSON tokens is allowed; keys must not contain spaces or newlines.
 
 ```env
 # ONE LINE JSON
@@ -86,6 +79,34 @@ This permits anonymous heartbeat inserts without permitting reads, updates,
 or deletes. It does not grant access to other tables. Leave the default
 minimal response for inserts; returning inserted rows would require SELECT
 permission.
+
+### 3. **Install Dependencies and Validate Configuration**
+
+Set `SUPABASES_JSON` in your `.env` file or environment before installing:
+
+```bash
+npm install
+```
+
+The `postinstall` hook validates the configuration automatically during both
+`npm install` and `npm ci`, including Render's existing `npm install` build
+command. A missing or malformed variable exits with code 1 and fails the
+build. Every array entry must be an object containing a valid HTTP/HTTPS
+project base URL and a non-empty key; invalid entries are never silently
+skipped. Example build error:
+
+```text
+Configuration error: SUPABASES_JSON entry 2: "key" must be a non-empty string.
+```
+
+Run `npm run build` or `npm run validate:env` to check again. Validation checks
+configuration structure without making network requests or printing keys.
+The cron uses the same validation before making any requests. A real cron run
+is still needed to verify credentials and database permissions.
+
+Run the regression tests with `npm test`. To install dependencies solely for
+development or tests before you have configured credentials, use
+`npm ci --ignore-scripts`, then `npm test`.
 
 ### 4. **Set Up the Cron Job on Render**
 

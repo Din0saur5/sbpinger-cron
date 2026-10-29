@@ -1,36 +1,6 @@
 const fetch = require("node-fetch");
 require("dotenv").config();
-
-function loadProjectsFromEnv() {
-  const raw = process.env.SUPABASES_JSON;
-  if (!raw) throw new Error("Missing SUPABASES_JSON env var.");
-
-  let arr;
-  try {
-    arr = JSON.parse(raw);
-  } catch (e) {
-    throw new Error("SUPABASES_JSON is not valid JSON: " + e.message);
-  }
-
-  if (!Array.isArray(arr) || arr.length === 0) {
-    throw new Error("SUPABASES_JSON must be a non-empty JSON array.");
-  }
-
-  // Basic schema check + cleanup
-  const projects = arr
-    .map((x, i) => ({
-      id: `env-${i + 1}`,
-      url: typeof x.url === "string" ? x.url.trim().replace(/\/+$/, "") : "",
-      key: typeof x.key === "string" ? x.key : "",
-    }))
-    .filter(p => p.url && p.key);
-
-  if (projects.length === 0) {
-    throw new Error("No valid {url,key} entries found in SUPABASES_JSON.");
-  }
-
-  return projects;
-}
+const { loadProjectsFromEnv } = require("./config");
 
 async function pingDatabase(db) {
   const headers = {
@@ -76,4 +46,7 @@ async function pingDatabase(db) {
   // await Promise.all(projects.map(pingDatabase));
 
   console.log("Done.");
-})();
+})().catch((error) => {
+  console.error(`Pinger failed: ${error.message}`);
+  process.exitCode = 1;
+});

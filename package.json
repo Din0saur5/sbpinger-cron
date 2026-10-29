@@ -4,7 +4,10 @@
   "description": "",
   "main": "ping.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "postinstall": "node validate-env.js",
+    "validate:env": "node validate-env.js",
+    "build": "npm run validate:env",
+    "test": "node --test"
   },
   "keywords": [],
   "author": "",
